@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import User from "./user.model";
 import { sendOTP } from "../../config/mail";
+import { generateToken } from "../../utills/jwt";
 
 export const generateOTP = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -78,16 +79,25 @@ const verifyUser = async (email: string, otp: string) => {
 };
 const loginUser = async (email: string, password: string) => {
   const user = await User.findOne({ email });
-  if (!user) {
-    throw new Error("user not exist");
-  }
-  if (!user.isVerified) {
-    throw new Error("User not verified. Please verify your email first.");
-  }
+  if (!user) throw new Error("User does not exist");
+  if (!user.isVerified) throw new Error("User not verified");
+
   const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    throw new Error("password invalid");
-  }
-  return user;
+  if (!isPasswordValid) throw new Error("Invalid password");
+
+  const accessToken = generateToken(
+    { id: user._id },
+    process.env.JWT_SECRET as string,
+    "1h"
+  );
+
+  const refreshToken = generateToken(
+    { id: user._id },
+    process.env.JWT_SECRET as string,
+    "90d"
+  );
+
+  return { user, accessToken, refreshToken };
 };
+
 export const userService = { createUser, verifyUser, resendOtp, loginUser };
