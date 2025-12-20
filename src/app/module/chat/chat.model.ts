@@ -1,8 +1,8 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IMessage extends Document {
-  sender: mongoose.Types.ObjectId;
-  recipient: mongoose.Types.ObjectId;
+  sender: string | Types.ObjectId;
+  recipient: string | Types.ObjectId;
   text: string;
   read: boolean;
   timestamp: Date;

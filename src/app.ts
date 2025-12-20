@@ -4,33 +4,55 @@ import http from "http";
 import { Server } from "socket.io";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import { initializeSocket } from "./app/config/socket";
 
 const app = express();
 const server = http.createServer(app);
 
 export const io = new Server(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
-    credentials: true,
-  },
+  cors: { origin: "*" },
 });
 
-// Initialize socket
-initializeSocket(io);
+// Store online users
+export const userSocketMap: Record<string, string> = {}; // { 68ffc62329d8c39088f0d241: 68ffc62329d8c39088f0d241 }
 
-// Middleware
+// socket.io connection handler
+io.on("connection", (socket) => {
+  const userId = socket.handshake.query.userId as string;
+  console.log(userId);
+
+  console.log("User connected: ", socket.id);
+
+  if (userId) userSocketMap[userId] = socket.id;
+
+  // Emit online user's to all connected clients
+  io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+  socket.on("message", (msg) => {
+    console.log(msg);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected: ", socket.id);
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete userSocketMap[userId];
+    io.emit("getOnlineUsers", Object.keys(userSocketMap));
+  });
+});
+
+// Middleware setup
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: "https://chatapp-frontend-jf6w.onrender.com",
+    // origin: "http://localhost:5173",
     credentials: true,
   })
 );
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Routes
+// RoutesuserId
 app.use("/api", router);
 
 // Health check

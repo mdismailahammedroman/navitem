@@ -1,41 +1,33 @@
-import Message, { IMessage } from "./chat.model";
-import User from "../user/user.model";
-import { io } from "../../../app";
+import Message from "./chat.model";
+import { io, userSocketMap } from "../../../app";
 
 const sendMessage = async (
   senderId: string,
   recipientId: string,
-  text: string
+  payload: { text?: string } // optional fields
 ) => {
-  // Validate users
-  const [sender, recipient] = await Promise.all([
-    User.findById(senderId),
-    User.findById(recipientId),
-  ]);
-
-  if (!sender || !recipient) {
-    throw new Error("Sender or recipient not found");
-  }
-
-  // Save message
-  const message = await Message.create({
+  // Build the payload
+  const messageData: {
+    sender: string;
+    recipient: string;
+    text?: string;
+  } = {
     sender: senderId,
     recipient: recipientId,
-    text,
-    timestamp: new Date(),
-  });
+  };
 
-  const populatedMessage = await message.populate("sender", "name email");
+  if (payload.text) messageData.text = payload.text;
 
-  // Send to recipient
-  io.to(recipientId).emit("receive-message", populatedMessage);
-  console.log(`Message sent to recipient (${recipientId}):`, populatedMessage);
+  // Save message in DB
+  const message = await Message.create(messageData);
 
-  // Optional: send back to sender
-  io.to(senderId).emit("message-sent", populatedMessage);
-  console.log(`Message sent back to sender (${senderId}):`, populatedMessage);
+  // Send via Socket.IO if recipient is online
+  const receiverSocketId = userSocketMap[recipientId];
+  if (receiverSocketId) {
+    io.to(receiverSocketId).emit("newMessage", message);
+  }
 
-  return populatedMessage;
+  return message;
 };
 
 export const chatService = {
