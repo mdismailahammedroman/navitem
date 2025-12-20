@@ -34,7 +34,7 @@ const resendOtp = async (req: Request, res: Response) => {
 
 const isProd = process.env.NODE_ENV === "production";
 
-export const loginUser = async (req: Request, res: Response) => {
+const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   try {

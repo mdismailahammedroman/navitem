@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import User from "./user.model";
 import { sendOTP } from "../../config/mail";
-import { generateToken } from "../../utills/jwt";
+import { generateToken } from "../../utils/jwt";
 
 export const generateOTP = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString();

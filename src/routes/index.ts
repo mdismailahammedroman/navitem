@@ -1,18 +1,18 @@
-import express from 'express';
-import { userRoute } from '../app/module/user/user.route';
-// import { authRouter } from '../app/module/auth/auth.route';  // Uncomment when ready
+import express from "express";
+import { userRoute } from "../app/module/user/user.route";
+import { chatRoute } from "../app/module/chat/chat.route";
 
 const router = express.Router();
 
 const routerModels = [
   {
-    path: '/user',
+    path: "/user",
     router: userRoute,
   },
-  // {
-  //   path: '/auth',
-  //   router: authRouter,
-  // },
+  {
+    path: "/chat",
+    router: chatRoute,
+  },
 ];
 
 routerModels.forEach((module) => {

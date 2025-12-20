@@ -7,6 +7,7 @@ export interface IUser {
   otp?: string;
   otpExpires?: Date;
   isVerified: boolean;
+  socketId?: string; // Add this field
 }
 
 const userSchema = new Schema<IUser>(
@@ -14,10 +15,10 @@ const userSchema = new Schema<IUser>(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-
     otp: { type: String },
     otpExpires: { type: Date },
     isVerified: { type: Boolean, default: false },
+    socketId: { type: String }, // Add this field
   },
   { timestamps: true }
 );
